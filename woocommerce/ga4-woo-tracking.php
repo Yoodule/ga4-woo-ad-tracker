@@ -275,11 +275,9 @@ class Ga4_Woo_Tracking {
             $data = [
                 'quantity' => $item->get_quantity(),
                 'price' => $product->get_price(),
-                'item_name' => $product->get_name(),
-                'currency' => $currency,
-                'item_category' => implode(', ', wc_get_product_terms($product->get_id(), 'product_cat', ['fields' => 'names'])),
-                'item_id' => $product->get_id(),
-                'item_brand' => ''
+                'name' => $product->get_name(),
+                'category' => implode(', ', wc_get_product_terms($product->get_id(), 'product_cat', ['fields' => 'names'])),
+                'id' => $this->get_product_identifier($product),
             ];
 
             if($variant) {
@@ -294,7 +292,6 @@ class Ga4_Woo_Tracking {
 
         <script>
             gtag('event', 'purchase', {
-                'send_to': ['<?php echo esc_js($this->ga4_id); ?>'],
                 'transaction_id': '<?php echo $transaction_id; ?>',
                 'affiliation': '<?php echo $store_name ?>',
                 'currency': '<?php echo $currency; ?>',
@@ -309,7 +306,6 @@ class Ga4_Woo_Tracking {
         <?php if($this->conversion_id): ?>
             <script>
                 gtag('event', 'conversion', {
-                    'send_to': 'AW-<?php echo esc_js($this->conversion_id); ?>',
                     'transaction_id': '<?php echo $transaction_id; ?>',
                     'affiliation': '<?php echo $store_name ?>',
                     'currency': '<?php echo $currency; ?>',
