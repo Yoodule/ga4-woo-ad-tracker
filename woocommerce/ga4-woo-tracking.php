@@ -303,21 +303,7 @@ class Ga4_Woo_Tracking {
                 'items': <?php echo $items_json; ?>
             });
         </script>
-        <?php if($this->conversion_id): ?>
-            <script>
-                gtag('event', 'conversion', {
-                    'transaction_id': '<?php echo $transaction_id; ?>',
-                    'affiliation': '<?php echo $store_name ?>',
-                    'currency': '<?php echo $currency; ?>',
-                    'value': <?php echo $value; ?>,
-                    'discount': <?php echo $discount; ?>,
-                    'tax': <?php echo $tax; ?>,
-                    'shipping': <?php echo $shipping; ?>,
-                    'coupon': '<?php echo $coupon_codes; ?>',
-                    'items': <?php echo $items_json; ?>
-                });
-            </script>
-        <?php endif;
+        <?php 
     }
 
 
