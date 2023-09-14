@@ -97,7 +97,7 @@
             $this->plugin_name . '_main', // Section
             [
                 'label_for' => 'conversion_id', 
-                'description' => 'Enter your Google Ad Conversion ID here. Format: AW-XXXXXXXXX/YYYYYYYYY'
+                'description' => 'Enter your Google Ad Conversion ID here. Format: AW-XXXXXXXXX'
             ] // Extra arguments
         );
 
@@ -160,7 +160,7 @@
     }
 
     function add_plugin_page_settings_link($links) {
-        $settings_link = "<a href='admin.php?page={$this->plugin_name}'>" . __('Opt In', $this->plugin_name) . '</a>';
+        $settings_link = "<a href='admin.php?page={$this->plugin_name}'>" . __('Settings', $this->plugin_name) . '</a>';
         array_unshift($links, $settings_link);
         return $links;
     }

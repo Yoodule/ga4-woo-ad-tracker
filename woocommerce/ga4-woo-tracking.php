@@ -6,12 +6,12 @@ class Ga4_Woo_Tracking {
      * GA4 ID
      * @var string
      */
-    private $ga4_id = null;
+    protected $ga4_id = null;
 
     /**
      * GA4 Ad Conversion ID
      */
-    private $conversion_id = null;
+    protected $conversion_id = null;
 
     public function __construct() {
 
@@ -39,7 +39,7 @@ class Ga4_Woo_Tracking {
         add_action('woocommerce_after_single_product', [$this, 'ga4_woo_product_view_event']);
 
         // add product info to loop product item cart button
-        add_filter('woocommerce_loop_add_to_cart_link', [$this, 'customize_add_to_cart_button'], 10, 3);
+        add_filter('woocommerce_loop_add_to_cart_link', [$this, 'customize_add_to_cart_button'], 30);
         // send "add_to_cart" event for loop item add to cart
         add_action('wp_head', [$this, 'ga4_woo_add_to_cart_item_event']);
         
@@ -76,7 +76,9 @@ class Ga4_Woo_Tracking {
         return $new_link;
     }
 
-    function customize_add_to_cart_button($html, $product, $args) {
+    function customize_add_to_cart_button($html) {
+        global $product;
+        
         $product_id = $this->get_product_identifier($product);
         $product_category = $this->product_get_category_line($product);
         $product_name = $product->get_name();
@@ -92,27 +94,22 @@ class Ga4_Woo_Tracking {
 
     function ga4_woo_add_to_cart_event() {
         global $product;
-
         // Only run this on single product pages
         if ($product) {
 
             wp_enqueue_script('jquery');
-    
-            // Prepare product data
-            $product_data = array(
-                'id' => $this->get_product_identifier($product),
-                'name' => $product->get_name(),
-                'price' => $product->get_price(),
-                'category' => $this->product_get_category_line( $product ),
-                'default_quantity' => 1,
-            );
-    
-            // Localize the script with the product data
-            wp_localize_script('jquery', 'productData', $product_data);
-    
-            $inline_script = '
+        
+            ?>
+            <script>
                 jQuery(document).ready(function($) {
-                    $("body").on("click", ".single_add_to_cart_button", function() {
+                    $(document).on("click", ".single_add_to_cart_button", function() {
+                        const productData = <?php echo json_encode(array(
+                            'id' => $this->get_product_identifier($product),
+                            'name' => $product->get_name(),
+                            'price' => $product->get_price(),
+                            'category' => $this->product_get_category_line( $product ),
+                            'default_quantity' => 1,
+                        )) ?>;
                         const product_quantity = $("input.qty").val() || productData.default_quantity;
                         gtag("event", "add_to_cart", {
                             items: [
@@ -127,9 +124,9 @@ class Ga4_Woo_Tracking {
                         });
                     });
                 });
-            ';
+            </script>
     
-            wp_add_inline_script('jquery', $inline_script);
+           <?php
         }
     }   
     
@@ -169,7 +166,7 @@ class Ga4_Woo_Tracking {
                     var cart_total = "<?php echo wp_strip_all_tags(preg_replace( '/&#?[a-z0-9]+;/i', '', WC()->cart->get_cart_total())); ?>";
                     var cart_items = <?php echo json_encode($cart_items); ?>;
                     
-                    $(document).on('click', '.checkout-button', function(event) {
+                    $(document).on('click', '.checkout-button,a[href*="/checkout/"]', function(event) {
                         gtag('event', 'begin_checkout', {
                             value: cart_total,
                             items: cart_items
@@ -183,6 +180,10 @@ class Ga4_Woo_Tracking {
         
 
     function ga4_woo_remove_from_cart_event() {
+        if ( ! is_cart() || !function_exists('WC')) {
+            return;
+        }
+        
         // Enqueue the dependency script first
         wp_enqueue_script('jquery');
 
@@ -215,10 +216,6 @@ class Ga4_Woo_Tracking {
     }
 
     function ga4_woo_add_to_cart_item_event() {
-        if ( ! is_shop()) {
-            return;
-        }
-        
 
         // Enqueue the dependency script first
         wp_enqueue_script('jquery');
@@ -254,6 +251,7 @@ class Ga4_Woo_Tracking {
 
 
     function ga4_woo_purchase_event($order_id) {
+       
         $order = wc_get_order($order_id);
         
         // Transaction details
@@ -335,11 +333,11 @@ class Ga4_Woo_Tracking {
 	 * @param  WC_Product $product WC_Product Object
 	 * @return string
 	 */
-	public static function get_product_identifier( $product ) {
+	public function get_product_identifier( $product ) {
 		if ( ! empty( $product->get_sku() ) ) {
 			return esc_js( $product->get_sku() );
 		} else {
-			return esc_js( '#' . ( $product->is_type( 'variation' ) ? $product->get_parent_id() : $this->get_product_identifier($product) ) );
+			return esc_js( '#' . ( $product->is_type( 'variation' ) ? $product->get_parent_id() :  $product->get_id() ) );
 		}
 	}
 
@@ -349,7 +347,7 @@ class Ga4_Woo_Tracking {
 	 * @param  WC_Product $product Product to generate category line for
 	 * @return string
 	 */
-	public static function product_get_category_line( $product ) {
+	public function product_get_category_line( $product ) {
 		$category_names = array();
 		$categories     = get_the_terms( $product->get_id(), 'product_cat' );
 
@@ -373,7 +371,7 @@ class Ga4_Woo_Tracking {
 	 * @param  WC_Product $_product  Product to pull info for
 	 * @return string                Line of JSON
 	 */
-	public static function product_get_variant_line( $_product ) {
+	public function product_get_variant_line( $_product ) {
 		$out            = '';
 		$variation_data = $_product->is_type( 'variation' ) ? wc_get_product_variation_attributes( $_product->get_id() ) : false;
 

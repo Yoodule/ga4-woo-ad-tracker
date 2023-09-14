@@ -56,3 +56,10 @@ Initial release of the plugin.
 **Tested up to:** 5.8  
 **Requires PHP:** 7.0  
 **Stable tag:** 1.0.0  
+**License:** GPLv2 or later  
+**License URI:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)
+
+
+## Authors
+
+- [Yoodule](https://yoodule.com?utm_source=james-kelly&utm_campaign=analytic-plugin&utm_medium=wp-dash)
