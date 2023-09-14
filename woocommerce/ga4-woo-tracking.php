@@ -287,7 +287,6 @@ class Ga4_Woo_Tracking {
         
         $items_json = json_encode($items_array);
         ?>
-
         <script>
             gtag('event', 'purchase', {
                 'transaction_id': '<?php echo $transaction_id; ?>',
@@ -300,8 +299,47 @@ class Ga4_Woo_Tracking {
                 'coupon': '<?php echo $coupon_codes; ?>',
                 'items': <?php echo $items_json; ?>
             });
+            gtag('event', 'purchase', {
+                'send_to': ['<?php echo esc_js($this->ga4_id); ?>'],
+                'transaction_id': '<?php echo $transaction_id; ?>',
+                'affiliation': '<?php echo $store_name ?>',
+                'currency': '<?php echo $currency; ?>',
+                'value': <?php echo $value; ?>,
+                'discount': <?php echo $discount; ?>,
+                'tax': <?php echo $tax; ?>,
+                'shipping': <?php echo $shipping; ?>,
+                'coupon': '<?php echo $coupon_codes; ?>',
+                'items': <?php echo $items_json; ?>
+            });
         </script>
-        <?php 
+        <?php if($this->conversion_id): ?>
+            <script>
+                gtag('event', 'purchase', {
+                    'send_to': 'AW-<?php echo esc_js($this->conversion_id); ?>',
+                    'transaction_id': '<?php echo $transaction_id; ?>',
+                    'affiliation': '<?php echo $store_name ?>',
+                    'currency': '<?php echo $currency; ?>',
+                    'value': <?php echo $value; ?>,
+                    'discount': <?php echo $discount; ?>,
+                    'tax': <?php echo $tax; ?>,
+                    'shipping': <?php echo $shipping; ?>,
+                    'coupon': '<?php echo $coupon_codes; ?>',
+                    'items': <?php echo $items_json; ?>
+                });
+                gtag('event', 'conversion', {
+                    'send_to': 'AW-<?php echo esc_js($this->conversion_id); ?>',
+                    'transaction_id': '<?php echo $transaction_id; ?>',
+                    'affiliation': '<?php echo $store_name ?>',
+                    'currency': '<?php echo $currency; ?>',
+                    'value': <?php echo $value; ?>,
+                    'discount': <?php echo $discount; ?>,
+                    'tax': <?php echo $tax; ?>,
+                    'shipping': <?php echo $shipping; ?>,
+                    'coupon': '<?php echo $coupon_codes; ?>',
+                    'items': <?php echo $items_json; ?>
+                });
+            </script>
+        <?php endif;
     }
 
 
