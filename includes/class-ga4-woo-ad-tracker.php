@@ -69,7 +69,7 @@
         // Register settings
         register_setting($this->plugin_name, 'ga4_id');
         register_setting($this->plugin_name, 'conversion_id');
-    
+
         // Add settings section
         add_settings_section(
             $this->plugin_name . '_main', // ID
@@ -101,8 +101,30 @@
             ] // Extra arguments
         );
 
+        // add purchase label
+        $this->add_conversion_label('purchase');
     }
 
+    public function add_conversion_label($item) {
+        register_setting($this->plugin_name, 'conversion_'.$item.'_label');
+
+        // For Purchase Conversion Label field
+        add_settings_field(
+            'conversion_'.$item.'_label', // ID
+            'Google Ad Conversion '.ucwords(str_replace("_", " ", $item)).' Label', // Title
+            function($args) use ($item) {
+                $conversion_label = get_option('conversion_'.$item.'_label', '');
+                echo '<input type="text" id="' . esc_attr( $args['label_for'] ) . '" name="conversion_'.$item.'_label" value="' . esc_attr($conversion_label) . '">';
+                echo '<p class="description">' . esc_html( $args['description'] ) . '</p>';        
+            }, // Callback
+            $this->plugin_name, // Page
+            $this->plugin_name . '_main', // Section
+            [
+                'label_for' => 'conversion_'.$item.'_lable', 
+                'description' => 'Enter your Google Ad Conversion '.ucwords(str_replace("_", " ", $item)).' Label here. Format: Xt19CO3axGAX0vg6X3gM'
+            ] // Extra arguments
+        );
+    }
     public function settings_section_callback() {
         echo '<p>Enter your Google Analytics 4 and Google Ad Conversion IDs to enable tracking.</p>';
     }

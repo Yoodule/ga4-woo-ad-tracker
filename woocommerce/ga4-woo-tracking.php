@@ -111,7 +111,7 @@ class Ga4_Woo_Tracking {
                             'default_quantity' => 1,
                         )) ?>;
                         const product_quantity = $("input.qty").val() || productData.default_quantity;
-                        gtag("event", "add_to_cart", {
+                        <?php echo $this->gtag('add_to_cart', "{
                             items: [
                                 {
                                     id: productData.id,
@@ -121,7 +121,7 @@ class Ga4_Woo_Tracking {
                                     quantity: product_quantity
                                 }
                             ]
-                        });
+                        }"); ?>
                     });
                 });
             </script>
@@ -167,10 +167,10 @@ class Ga4_Woo_Tracking {
                     var cart_items = <?php echo json_encode($cart_items); ?>;
                     
                     $(document).on('click', '.checkout-button,a[href*="/checkout/"]', function(event) {
-                        gtag('event', 'begin_checkout', {
+                        <?php echo $this->gtag('begin_checkout', "{
                             value: cart_total,
                             items: cart_items
-                        });
+                        }");?>
                     });
                 });
             </script>
@@ -198,7 +198,7 @@ class Ga4_Woo_Tracking {
                     const product_quantity = $(this).data('product_quantity');
                     const product_category = $(this).data('product_category');
 
-                    gtag('event', 'remove_from_cart', {
+                    <?php echo $this->gtag('remove_from_cart', "{
                         items: [
                             {
                                 item_id: product_id,
@@ -208,7 +208,7 @@ class Ga4_Woo_Tracking {
                                 category: product_category
                             }
                         ]
-                    });
+                    }");?>
                 });
             });
         </script>
@@ -232,7 +232,7 @@ class Ga4_Woo_Tracking {
                     const product_quantity = $(this).data('product_quantity');
                     const product_category = $(this).data('product_category');
 
-                    gtag('event', 'add_to_cart', {
+                    <?php echo $this->gtag('add_to_cart', "{
                         items: [
                             {
                                 id: product_id,
@@ -242,7 +242,7 @@ class Ga4_Woo_Tracking {
                                 quantity: product_quantity
                             }
                         ]
-                    });
+                    }"); ?>
                 });
             });
         </script>
@@ -285,61 +285,17 @@ class Ga4_Woo_Tracking {
             $items_array[] = $data;
         }
         
-        $items_json = json_encode($items_array);
-        ?>
-        <script>
-            gtag('event', 'purchase', {
-                'transaction_id': '<?php echo $transaction_id; ?>',
-                'affiliation': '<?php echo $store_name ?>',
-                'currency': '<?php echo $currency; ?>',
-                'value': <?php echo $value; ?>,
-                'discount': <?php echo $discount; ?>,
-                'tax': <?php echo $tax; ?>,
-                'shipping': <?php echo $shipping; ?>,
-                'coupon': '<?php echo $coupon_codes; ?>',
-                'items': <?php echo $items_json; ?>
-            });
-            gtag('event', 'purchase', {
-                'send_to': ['<?php echo esc_js($this->ga4_id); ?>'],
-                'transaction_id': '<?php echo $transaction_id; ?>',
-                'affiliation': '<?php echo $store_name ?>',
-                'currency': '<?php echo $currency; ?>',
-                'value': <?php echo $value; ?>,
-                'discount': <?php echo $discount; ?>,
-                'tax': <?php echo $tax; ?>,
-                'shipping': <?php echo $shipping; ?>,
-                'coupon': '<?php echo $coupon_codes; ?>',
-                'items': <?php echo $items_json; ?>
-            });
-        </script>
-        <?php if($this->conversion_id): ?>
-            <script>
-                gtag('event', 'purchase', {
-                    'send_to': 'AW-<?php echo esc_js($this->conversion_id); ?>',
-                    'transaction_id': '<?php echo $transaction_id; ?>',
-                    'affiliation': '<?php echo $store_name ?>',
-                    'currency': '<?php echo $currency; ?>',
-                    'value': <?php echo $value; ?>,
-                    'discount': <?php echo $discount; ?>,
-                    'tax': <?php echo $tax; ?>,
-                    'shipping': <?php echo $shipping; ?>,
-                    'coupon': '<?php echo $coupon_codes; ?>',
-                    'items': <?php echo $items_json; ?>
-                });
-                gtag('event', 'conversion', {
-                    'send_to': 'AW-<?php echo esc_js($this->conversion_id); ?>',
-                    'transaction_id': '<?php echo $transaction_id; ?>',
-                    'affiliation': '<?php echo $store_name ?>',
-                    'currency': '<?php echo $currency; ?>',
-                    'value': <?php echo $value; ?>,
-                    'discount': <?php echo $discount; ?>,
-                    'tax': <?php echo $tax; ?>,
-                    'shipping': <?php echo $shipping; ?>,
-                    'coupon': '<?php echo $coupon_codes; ?>',
-                    'items': <?php echo $items_json; ?>
-                });
-            </script>
-        <?php endif;
+        echo $this->gtag('purchase', "{
+            'transaction_id': '$transaction_id',
+            'affiliation': '$store_name',
+            'currency': '$currency',
+            'value': $value,
+            'discount': $discount,
+            'tax': $tax,
+            'shipping': $shipping,
+            'coupon': '$coupon_codes',
+            'items': ".json_encode($items_array)."
+        }", true);
     }
 
 
@@ -352,15 +308,15 @@ class Ga4_Woo_Tracking {
 
     ?>
         <script>
-            gtag('event', 'view_item', {
+            <?php echo $this->gtag('view_item', "{
                 'items': [{
-                    'id': '<?php echo $product_id; ?>',
-                    'name': '<?php echo $product_name; ?>',
-                    'price': '<?php echo $product_price; ?>',
-                    'currency': '<?php echo $currency; ?>',
-                    'category': '<?php echo $this->product_get_category_line( $product ) ?>',
+                    'id': '$product_id',
+                    'name': '$product_name',
+                    'price': '$product_price',
+                    'currency': '$currency',
+                    'category': '".$this->product_get_category_line( $product )."',
                 }]
-            });
+            }");?>
         </script>
     <?php
     }
@@ -419,6 +375,39 @@ class Ga4_Woo_Tracking {
 
 		return $out;
 	}
+
+    function gtag($eventName, $paramsJson, $withScript=false) {
+        // Initialize JS code string
+        $jsCode = "";
+
+        if($withScript) $jsCode .= "<script>";
+
+        // Add the GA4 event tracking code
+        $jsCode .= "gtag('event', '{$eventName}', {$paramsJson});\n";
+
+        // Initialize Google Ads parameters
+        $adsParamsJs = $paramsJson;
+
+        // Check if conversion_id exists within the function
+        if (isset($this->conversion_id)) {
+            // Fetch the conversion label from the database and remove 'AW-' prefix if it exists
+            $conversion_label = preg_replace('/^AW-/', '', get_option("conversion_{$eventName}_label"));
+
+            // Determine the send_to value based on available data
+            $send_to = $conversion_label ? esc_js($this->conversion_id) . '/' . esc_js($conversion_label) : esc_js($this->conversion_id);
+
+            // Append the send_to parameter
+            $adsParamsJs = "{\nsend_to: 'AW-{$send_to}'," . substr($adsParamsJs, 1);
+
+            // Add the Google Ads conversion tracking code
+            $jsCode .= "gtag('event', '{$eventName}', {$adsParamsJs});\n";
+
+        }
+
+        if($withScript) $jsCode .= "</script>";
+
+        return $jsCode;
+    }
 }
 
 // Initialize the class
